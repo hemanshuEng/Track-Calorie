@@ -62,6 +62,19 @@ const ItemCtrl = (function() {
       });
       return found;
     },
+    deleteItem: function(id) {
+      // Get ids
+      const ids = data.items.map(function(item) {
+        return item.id;
+      });
+      // Get index
+      const index = ids.indexOf(id);
+      // remove item
+      data.items.splice(index, 1);
+    },
+    clearAllItems: function() {
+      data.items = [];
+    },
     getCurrentItem: function() {
       return data.currentItem;
     },
@@ -93,6 +106,7 @@ const UICtrl = (function() {
     updateBtn: ".update-btn",
     deleteBtn: ".delete-btn",
     backBtn: ".back-btn",
+    clearBtn: ".clear-btn",
     itemNameInput: "#item-name",
     itemCaloriesInput: "#item-calories",
     totalCalories: ".total-calories"
@@ -155,6 +169,11 @@ const UICtrl = (function() {
         }
       });
     },
+    deleteListItem: function(id) {
+      const itemID = `#item-${id}`;
+      const item = document.querySelector(itemID);
+      item.remove();
+    },
     clearInput: function() {
       document.querySelector(UISelector.itemNameInput).value = "";
       document.querySelector(UISelector.itemCaloriesInput).value = "";
@@ -167,6 +186,15 @@ const UICtrl = (function() {
         UISelector.itemCaloriesInput
       ).value = ItemCtrl.getCurrentItem().calories;
       UICtrl.showEditState();
+    },
+    removeItems: function() {
+      let listItems = document.querySelectorAll(UISelector.listItems);
+
+      // Turn Node list into array
+      listItems = Array.from(listItems);
+      listItems.forEach(function(item) {
+        item.remove();
+      });
     },
     hideList: function() {
       document.querySelector(UISelector.itemList).style.display = "none";
@@ -220,6 +248,18 @@ const App = (function(ItemCtrl, UICtrl) {
     document
       .querySelector(UISelector.updateBtn)
       .addEventListener("click", itemUpdateSubmit);
+    // Back button item
+    document
+      .querySelector(UISelector.backBtn)
+      .addEventListener("click", UICtrl.clearEditState);
+    // Back button item
+    document
+      .querySelector(UISelector.deleteBtn)
+      .addEventListener("click", ItemDeleteSubmit);
+    // clear button
+    document
+      .querySelector(UISelector.clearBtn)
+      .addEventListener("click", clearAllItemsClick);
   };
   //   Add item submit
   const itemAddSubmit = function(e) {
@@ -278,6 +318,36 @@ const App = (function(ItemCtrl, UICtrl) {
 
     UICtrl.clearEditState();
     e.preventDefault();
+  };
+  //Delete Button Event
+  const ItemDeleteSubmit = function(e) {
+    // get Current item id
+    const currentItem = ItemCtrl.getCurrentItem();
+
+    // Delete from items
+    ItemCtrl.deleteItem(currentItem.id);
+    // Delete from ui
+    UICtrl.deleteListItem(currentItem.id);
+    const totalCalories = ItemCtrl.getTotalCalories();
+    // add total calories to UI
+    UICtrl.showTotalCalories(totalCalories);
+
+    UICtrl.clearEditState();
+    e.preventDefault();
+  };
+
+  // clear item events
+  const clearAllItemsClick = function() {
+    //   Delete all items from data structure
+    ItemCtrl.clearAllItems();
+
+    const totalCalories = ItemCtrl.getTotalCalories();
+    // add total calories to UI
+    UICtrl.showTotalCalories(totalCalories);
+
+    UICtrl.removeItems();
+    //hide ul
+    UICtrl.hideList();
   };
   // Public Methods
   return {
